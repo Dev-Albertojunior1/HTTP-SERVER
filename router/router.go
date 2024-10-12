@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"net/http"
+	"path"
 	"strings"
 
 	"honnef.co/go/tools/pattern"
@@ -60,8 +61,26 @@ func (r *Router) findHandler(method, path string) (http.HandlerFunc, map[string]
 		}
 	}
 	return nil, nil, false
+
 }
 
-func match(pattern) {
+func match(pattern, path string) (map[string]string, bool) {
+	patternParts := strings.Split(strings.Trim(pattern, "/"), "/")
+	pathParts := strings.Split(strings.Trim(path, "/"), "/")
 
+	if len(patternParts) != len(pathParts) {
+		return nil, false
+	}
+
+	params := make(map[string]string)
+	for i, part := range patternParts {
+		if strings.HasPrefix(part, "{") && strings.HasSuffix(part, "}") {
+			key := strings.Trim(part, "{}")
+			params[key] = pathParts[i]
+
+		} else if part != pathParts[i] {
+			return nil, false
+		}
+	}
+	return params, true
 }
